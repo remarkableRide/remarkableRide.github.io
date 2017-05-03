@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title><![CDATA[Hello]]></title>
+    <url>%2F2017%2F05%2F01%2Fhello%2F</url>
+    <content type="text"><![CDATA[Hexo的建站之旅一直想搭建一个属于自己的博客，从3个月前用H5页面打造的简历，到今天的Hexo最初的想法是用前端技术从前台一直搭到后台，无奈时间来不及。目前正在写一个自己的库和翻看jquery的源码，同时也确实意识到不一定所有的东西都要自己造轮子，所以选择了Hexo来快速建站。提前开始自己的书写之旅。 关于代码Hexo的搭建十分简单，但是现在的版本也十分简陋，还没有进行排版和打造留言模块，接下来会添加上来。包括标签，搜索栏等等。先尝试着用MrakDown的语法发了这篇博客，也算是插了个旗帜。所以，这就是第一篇hello world了。]]></content>
+      <tags>
+        <tag>-随笔 -第一章</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title><![CDATA[Hello World]]></title>
+    <url>%2F2017%2F05%2F01%2Fhello-world%2F</url>
+    <content type="text"><![CDATA[Welcome to Hexo! This is your very first post. Check documentation for more info. If you get any problems when using Hexo, you can find the answer in troubleshooting or you can ask me on GitHub. Quick StartCreate a new post1$ hexo new "My New Post" More info: Writing Run server1$ hexo server More info: Server Generate static files1$ hexo generate More info: Generating Deploy to remote sites1$ hexo deploy More info: Deployment]]></content>
+  </entry>
+</search>
