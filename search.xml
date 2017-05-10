@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[探索JS原型链]]></title>
+    <url>%2F2017%2F05%2F10%2F%E6%8E%A2%E7%B4%A2JS%E5%8E%9F%E5%9E%8B%E9%93%BE%2F</url>
+    <content type="text"></content>
+      <tags>
+        <tag>-技术 -面向对象语言</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[博客添加功能]]></title>
     <url>%2F2017%2F05%2F03%2F%E5%8D%9A%E5%AE%A2%E6%B7%BB%E5%8A%A0%E5%8A%9F%E8%83%BD%2F</url>
     <content type="text"><![CDATA[升级版本之前的博客用的是Hexo默认的主题，今天根据网上的攻略换成了next主题，next主题的官方文档，依次添加了评论模块，搜索，标签，其中音乐模块的添加来自如何在Hexo中添加网易云音乐。 遗留的问题，Hexo发布文章时，需要先在命令行中输入hexo g,否则页面调试时加载不出对应的文章。来必应的加载速度很慢，会出现评论无法显示的情况，体验不佳。改善建议：1，利用码云云加速，提高网站的访问速度。2，若1无显著效果，考虑将内容部署到自己的服务器上，提升稳定性。]]></content>
