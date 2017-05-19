@@ -281,6 +281,160 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://github.com/remarkableRide/io/2017/05/18/JS作用域/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="remarkableRide">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RemarkableRide">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2017/05/18/JS作用域/" itemprop="url">
+                  JS作用域
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-18T19:40:21+08:00">
+                2017-05-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  1,075
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  4
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="JS引擎的工作流程"><a href="#JS引擎的工作流程" class="headerlink" title="JS引擎的工作流程"></a>JS引擎的工作流程</h2><p>上一章说到函数声明会自动提前，实际就是JS引擎的功劳，电脑CPU只能理解二进制代码，而我们书写的程序需要经过编译之后形成机器码才能输入给CPU执行，这段过程称为编译：包括词法分析-把代码分割成最小化，语法分析-重新组合代码，语义分析-生成语法树，然后是中间代码生成，再经过链接器的链接生成最后的可执行机器码。JS的作为一门解释性语言的差别体现在边编译边执行。而执行编译的便是JS引擎，比如比较著名的谷歌chrome浏览器v8引擎。</p>
+<h3 id="作用域的确定"><a href="#作用域的确定" class="headerlink" title="作用域的确定"></a>作用域的确定</h3><p><strong>JS语言的作用域指的是函数和变量的可访问的范围</strong>，JS中没有块级作用域，比如<code>if(){}</code>,<code>for(){}</code>这些语句块内部定义的变量外部都是能拿到的，这里不举例，与这句话相对应的是JS中只存在函数作用域和全局作用域。而作用域的创建是在函数定义的时刻，与函数是否被调用无关：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> c = <span class="number">1</span>;</div><div class="line"><span class="keyword">var</span> a = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; </div><div class="line">        <span class="built_in">console</span>.log(c);</div><div class="line">&#125;;</div><div class="line"><span class="keyword">var</span> b = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</div><div class="line">	<span class="keyword">var</span> c = <span class="number">2</span>;</div><div class="line">        a();    </div><div class="line">&#125;;</div><div class="line">b();    <span class="comment">//  此时会打印1，而不是2</span></div></pre></td></tr></table></figure></p>
+<p>我在刚开始遇到这个问题时，百思不得其解，为什么函数会拿到外部的a，而对里面的a无动于衷，不是说好的，变量的查找是沿着作用域链一级一级往上查找，最近的最先找到么？想要弄明白这个问题，就要知道JS解析这段代码时发生了什么。JS解析一个函数的调用时，实际会载入被调用函数的执行上下文环境，这个熟悉的名字，我们常说的<code>this</code>，也是执行上下文环境的一部分，下面让我们来模仿一下JS引擎的思维方式，走起：<br>第一步，我们在全局下提取变量声明和函数声明:<table class="table table-bordered table-striped table-condensed"><tr><td>全局上下文环境-代码开始开始解析</td><td></td></tr><tr><td>c</td><td>undefined</td></tr><tr><td>a</td><td>undefined</td></tr><tr><td>b</td><td>undefined</td></tr></table><table class="table table-bordered table-striped table-condensed"><tr><td>全局上下文环境-代码解析到第8行</td><td>进行赋值</td></tr><tr><td>c</td><td>1</td></tr><tr><td>a</td><td>function</td></tr><tr><td>b</td><td>function</td></tr></table>在执行到第9行时，调用b函数，同时，会创建一个b函数的新的执行上下文环境：<table class="table table-bordered table-striped table-condensed"><tr><td>b函数的上下文环境</td><td></td></tr><tr><td>局部变量c</td><td>2</td></tr><tr><td>this</td><td>window</td></tr><tr><td>arguments</td><td>undefined</td></tr></table>然后，引擎进入b函数内部，也就是第五行，b函数的上下文环境会被载入到上下文环境栈，一个压栈的操作：<table class="table table-bordered table-striped table-condensed"><tr><td>b函数的上下文环境-栈顶</td></tr><tr><td>全局上下文环境-栈底</td></tr></table>继续解析到第7行，调用a函数，与刚才一样，创建一个a函数的上下文环境并执行压栈，但是，此时a的执行上下文中并没变量c的定义，这个时候，引擎会到<em>创建a函数的作用域中去取值</em>，也就是我们所说的跨域，而此时的a函数定义在全局作用域中，自然也就拿到了<code>c=1</code>的值并输出。那什么情况下a函数会输出<code>c=2</code>呢，只有当a函数身处b函数的作用域中时，也就是，a函数在b的作用域中定义。这也很好的解释了闭包的原理：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">f1</span>(<span class="params"></span>)</span>&#123;</div><div class="line">　　<span class="keyword">var</span> n=<span class="number">999</span>;</div><div class="line">　　<span class="function"><span class="keyword">function</span> <span class="title">f2</span>(<span class="params"></span>)</span>&#123;</div><div class="line">　　　　　　alert(n); </div><div class="line">　　&#125;</div><div class="line">　　<span class="keyword">return</span> f2;</div><div class="line">&#125;</div><div class="line"><span class="keyword">var</span> result=f1();</div><div class="line">result();     <span class="comment">//  999</span></div></pre></td></tr></table></figure></p>
+<p>此例来源于:<a href="http://www.ruanyifeng.com/blog/2009/08/learning_javascript_closures.html" target="_blank" rel="external">阮一峰的网络日志</a>;<br>按照我们刚才分析的思路，来解释一下这个例子就很容易了，首先f1返回的是一个函数，当调用这个函数的时候，JS引擎就会先进入到f2函数作用域中寻找n的值，结果当然是没有，接下来跨域到<strong>创建f2函数的f1函数作用域</strong>中寻找，找到了<code>n=999</code>并输出：<table class="table table-bordered table-striped table-condensed"><tr><td>f2函数的上下文环境-栈顶</td></tr><tr></tr><tr><td>f1函数的上下文环境</td></tr><td>全局上下文环境-栈底</td></table><br>而此时由于f2函数引用了f1函数中的变量，导致f1函数的上下文环境并不能从内存中释放，直到第9行f2函数调用结束。这也是我们常说的闭包的弊端：增加内存开销。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="https://github.com/remarkableRide/io/2017/05/10/探索JS原型链/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -351,7 +505,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  1,365
+                  1,479
                 </span>
               
 
@@ -367,7 +521,7 @@
                   <span class="post-meta-item-text">阅读时长</span>
                 
                 <span title="阅读时长">
-                  5
+                  6
                 </span>
               
             </div>
@@ -390,7 +544,7 @@
           
             <h2 id="踏入面向对象的世界"><a href="#踏入面向对象的世界" class="headerlink" title="踏入面向对象的世界"></a>踏入面向对象的世界</h2><p>最近在观看Zepto源码解析的视频时，老师又讲到了$对象与普通对象的区别，还记得《锋利的jquery》一书中说，$对象与普通对象的区别在于，$对象是一个数组结构的对象，但没有数组的push，shift方法。想必在控制台大家也注意这对”[]”。那么它内部是如何实现这个不是数组的对象呢？其实实现这个方法非常容易，也就是这个方法，体现了JS作为一门面向对象编程语言的继承功能——JS原型链。</p>
 <h3 id="JS原型英文解析"><a href="#JS原型英文解析" class="headerlink" title="JS原型英文解析"></a>JS原型英文解析</h3><p>Every JavaScript object has a prototype. The prototype is also an object.<br>All JavaScript objects inherit their properties and methods from their prototype.</p>
-<p><strong>JavaScript Prototypes</strong><br>All JavaScript objects inherit the properties and methods from their prototype.<br>Objects created using an object literal, or with new Object(), inherit from a prototype called Object.prototype.<br>Objects created with new Date() inherit the Date.prototype.<br>The Object.prototype is on the top of the prototype chain.<br>All JavaScript objects (Date, Array, RegExp, Function, ….) inherit from the Object.prototype.<br>More info: <a href="http://w3schools.bootcss.com/js/js_object_prototypes.html" target="_blank" rel="external">w3schools</a><br>首先说下为什么要拉出英文的定义，我在写这篇文档时，查看了前3页的搜索“JS原型链”的文章，其中定义最清晰简洁的还要属w3school，一般来说访问这个网站需要翻墙，国内有一个汉化版，但是不全，比较新的内容没有搬过来，比如英文版的w3school有一个w3.css的小框架，用法跟bootstrap一样，都是往class标签里添加类，用起来比bootstrap更小巧。不过比较冷门。<br>引用的英文的意思是说，每个JS对象都有一个原型，原型也是对象，JS对象从原型那里继承了属性和方法。既然每个对象都有原型，那肯定有一个顶，也就是原型链最深处的原始原型，下文也说了，即<strong>Object.prototype</strong>，但，这里有一个常见的误区，就是把原型和对象的prototype属性划等号。在ECMAScript5的语法当中，prototype是函数特有的属性，实例对象的原型则是<code>__proto__</code>,<code>prototype</code>用来存放函数继承给下一代的东西，但是对于函数自己是不可见的。例一：</p>
+<p><strong>JavaScript Prototypes</strong><br>All JavaScript objects inherit the properties and methods from their prototype.<br>Objects created using an object literal, or with new Object(), inherit from a prototype called Object.prototype.<br>Objects created with new Date() inherit the Date.prototype.<br>The Object.prototype is on the top of the prototype chain.<br>All JavaScript objects (Date, Array, RegExp, Function, ….) inherit from the Object.prototype.<br>More info: <a href="http://w3schools.bootcss.com/js/js_object_prototypes.html" target="_blank" rel="external">w3schools</a><br>首先说下为什么要拉出英文的定义，我在写这篇文档时，查看了前3页的搜索“JS原型链”的文章，其中定义最清晰简洁的还要属w3school，一般来说访问这个网站需要翻墙，国内有一个汉化版，但是不全，比较新的内容没有搬过来，比如英文版的w3school有一个w3.css的小框架，用法跟bootstrap一样，都是往class标签里添加类，用起来比bootstrap更小巧。不过比较冷门。<br>引用的英文的意思是说，每个JS对象都有一个原型，原型也是对象，JS对象从原型那里继承了属性和方法。既然每个对象都有原型，那肯定有一个顶，也就是原型链最深处的原始原型，下文也说了，即<strong>Object.prototype</strong>，但，这里有一个常见的误区，就是把原型和对象的prototype属性划等号。在ECMAScript5的语法当中，prototype是函数特有的属性，实例对象的原型则是<code>__proto__</code>,<code>prototype</code>用来存放函数继承给下一代的东西，但是直接访问是访问不到的。例一：</p>
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> a = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;&#125;;</div><div class="line">a.prototype.b=<span class="number">3</span>;</div><div class="line">a.b;   <span class="comment">//  undefined</span></div><div class="line"><span class="keyword">var</span> b = <span class="keyword">new</span> a();</div><div class="line">b.b;   <span class="comment">//  3</span></div></pre></td></tr></table></figure>
 <p>这里用new关键字构造了b对象，此时a也称为构造函数，构造函数很容易和<code>constructor</code>属性弄混，尤其是：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> b = <span class="keyword">new</span> a () ;</div><div class="line">b.constructor === a;   <span class="comment">//  true</span></div></pre></td></tr></table></figure></p>
 <p>这里返回的true让人觉得这是b由a构造的证据，but，实际上不是，<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">b.hasOwnProperty(<span class="string">"constructor"</span>);   <span class="comment">//  false</span></div></pre></td></tr></table></figure></p>
@@ -398,9 +552,9 @@
 <p>实际上<code>b.constructor</code>是a原型链上的属性，而a的原型链之所以有这个属性，也正是指出了a的原型链是a对象在实例化出来的同时由a对象构造出来存放继承属性及方法的地方。不过由于<code>constructor</code>属性可以随意更改，所以单凭该属性来判定函数原型的构造很危险，也并不常用。a函数对象的实例化：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> a = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;&#125;;</div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span>(<span class="params"></span>) </span>&#123;&#125;;</div><div class="line"><span class="keyword">var</span> a = <span class="keyword">new</span> <span class="built_in">Function</span> () ;</div></pre></td></tr></table></figure></p>
 <p>以上3种方法是等价的，唯一不同的是<code>function a () {}</code>函数声明会前置，这里涉及到JS引擎解析代码的过程，略过不提。<br>第3种方法也揭示了创建一个函数也是一个实例化，常用的<code>Array，String，Boolean</code>。实际上也是<code>Function</code>函数的实例化对象。<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">Array</span>.__proto__ === <span class="built_in">Function</span>.prototype;   <span class="comment">//true</span></div><div class="line"><span class="built_in">Boolean</span>.__proto__ === <span class="built_in">Function</span>.prototype;   <span class="comment">//true</span></div></pre></td></tr></table></figure></p>
 <p>常用的数组方法，push，pop，shift，也是定义在Array的Prototype上：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">console</span>.log(<span class="built_in">Array</span>.prototype);</div></pre></td></tr></table></figure></p>
-<p>回到刚开始的问题：$()函数是类数组的结构，却没有数组的方法，即$()实际的原型不是指向Array函数的prototype。例：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> a = <span class="keyword">new</span> <span class="built_in">Array</span>();</div><div class="line">a.push(<span class="number">1</span>);   <span class="comment">//  1</span></div><div class="line">a.__proto__ = <span class="keyword">new</span> <span class="built_in">Object</span>();</div><div class="line">a.push(<span class="number">2</span>);   <span class="comment">//  Uncaught TypeError</span></div></pre></td></tr></table></figure></p>
+<p>回到刚开始的问题：$()对象是类数组的结构，却没有数组的方法，即$()实际的原型不是指向Array函数的prototype。例：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> a = <span class="keyword">new</span> <span class="built_in">Array</span>();</div><div class="line">a.push(<span class="number">1</span>);   <span class="comment">//  1</span></div><div class="line">a.__proto__ = <span class="keyword">new</span> <span class="built_in">Object</span>();</div><div class="line">a.push(<span class="number">2</span>);   <span class="comment">//  Uncaught TypeError</span></div></pre></td></tr></table></figure></p>
 <p>更改了a数组的原型指向，便没有了数组上定义的方法。</p>
-<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>函数的<code>prototype</code>对象存放着该函数实例化对象继承的方法，<code>Array</code>等函数的定义更像是实现了一个方法集。一个面向对象编程语言当中类的概念。但并不完美，譬如函数本身无法访问到，所以便有了JS当中的特权方法，也就是另一个难点<code>this</code>的指向，下一章，我将会对JS的作用域进行分析，想要理解<code>this</code>的指向问题，闭包，实际上就是理解函数在执行时的作用域的变化。</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>函数的<code>prototype</code>对象存放着该函数实例化对象继承的方法，<code>Array</code>等函数的定义更像是实现了一个方法集。一个面向对象编程语言当中类的概念。但并不完美，譬如函数本身无法访问到，所以便有了JS当中的特权方法，也就是另一个难点<code>this</code>的指向，下一章，我将会对JS的作用域进行分析，想要理解<code>this</code>的指向问题，闭包，实际上就是理解函数在执行时的作用域的变化。<br><code>prototype</code>对象中若是定义了一个引用类型的方法或者是属性，当其中的一个实例进行了修改操作，其原型链上的所有实例都会收到影响，所以，引用类型的方法或者属性应该避免定义在原型上，可以改用this：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> a = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</div><div class="line">	a.prototype.array=[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>];</div><div class="line">&#125;</div><div class="line"><span class="keyword">var</span> b = <span class="keyword">new</span> a();</div><div class="line"><span class="keyword">var</span> c = <span class="keyword">new</span> a();</div><div class="line">b.array.push(<span class="number">4</span>);   <span class="comment">//  [1,2,3,4]</span></div><div class="line"><span class="built_in">console</span>.log(c);   <span class="comment">//  [1,2,3,4]</span></div></pre></td></tr></table></figure></p>
 <h3 id="题外话"><a href="#题外话" class="headerlink" title="题外话"></a>题外话</h3><p>这篇文章从10号晚上开始写，今天14号。比预计的进度慢，期间严重感冒，一度坐在电脑面前咳咳咳，除了上班剩下的时间都用来睡觉恢复了。今天感冒消散，赶紧把挖的洞补上。想说的是，写博客确实是一个人能力提升的好办法，从写的时候上网查资料，到转化为自己理解的语言，再进行代码测试，最后发布。这种用输出倒逼输入的过程比自己看书，看视频学习的效率要高上不少，难怪有老的程序员说，想要提高，就要自己写博客。也希望自己能够越写越顺畅~</p>
 
           
@@ -944,7 +1098,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -957,7 +1111,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">3</span>
+                <span class="site-state-item-count">4</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
