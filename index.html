@@ -281,6 +281,167 @@
   
 
   <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://github.com/remarkableRide/io/2017/05/23/当我们在调用this的时候，调用的到底是什么？/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="remarkableRide">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="RemarkableRide">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2017/05/23/当我们在调用this的时候，调用的到底是什么？/" itemprop="url">
+                  当我们在调用this的时候，调用的到底是什么？
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-23T09:50:20+08:00">
+                2017-05-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+          
+
+          
+
+          
+            <div class="post-wordcount">
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-file-word-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">字数统计</span>
+                
+                <span title="字数统计">
+                  1,348
+                </span>
+              
+
+              
+                <span class="post-meta-divider">|</span>
+              
+
+              
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-clock-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">阅读时长</span>
+                
+                <span title="阅读时长">
+                  5
+                </span>
+              
+            </div>
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h2 id="What-is-this"><a href="#What-is-this" class="headerlink" title="What is this ?"></a>What is this ?</h2><p>this到底是什么，之前我们在写到执行上下文环境时，说到<code>this</code>也是其中的一个对象，还有<code>arguments</code>,<a href="https://remarkableride.github.io/2017/05/18/JS作用域/" target="_blank" rel="external">点我查看</a>,<code>this</code>是JS语言当中的关键字，在<code>C# , java</code>中也有此关键字，使用的方法也类似。首先我们抛出一个结论：<code>this</code>的使用，是为了更优雅的传递对一个对象的引用。可以极大的简化代码的结构，当然，如果用不好就会很懵逼了。例一：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span> (<span class="params"></span>) </span>&#123;</div><div class="line">	<span class="keyword">return</span> <span class="keyword">this</span>.name;</div><div class="line">&#125;</div><div class="line"><span class="keyword">var</span> me = &#123;</div><div class="line">	<span class="attr">name</span>:<span class="string">"帅的一塌糊涂"</span></div><div class="line">&#125;;</div><div class="line">a.call(me);    <span class="comment">//  "结果你懂的"</span></div></pre></td></tr></table></figure></p>
+<p>而不使用<code>this</code>时，我们的函数就需要显式的用一个参数来传递对对象的引用：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span>(<span class="params">context</span>)</span>&#123;</div><div class="line">	<span class="keyword">return</span> context.name;</div><div class="line">&#125;</div><div class="line"><span class="keyword">var</span> me = &#123;</div><div class="line">	<span class="attr">name</span>:<span class="string">"帅的一塌糊涂"</span></div><div class="line">&#125;;</div><div class="line">a(me);</div></pre></td></tr></table></figure></p>
+<p>不使用<code>this</code>冒似看上去比使用更容易理解，但实际生产中代码远远没有这么简单，要是一直使用显式参数传递上下文对象会让代码变得混乱。所以，我们应该去深入<code>this</code>的用法，网上的关于<code>this</code>的用法，一般分为4类，1，直接调用；2，作为对象的方法调用；3，作为构造函数调用；4，显式绑定call，apply调用。我认为这四种实际可分为两种情况。</p>
+<h4 id="Rule-No-1-this-总是指向最后调用它的那个对象："><a href="#Rule-No-1-this-总是指向最后调用它的那个对象：" class="headerlink" title="Rule.No.1: this 总是指向最后调用它的那个对象："></a><strong>Rule.No.1: <code>this</code> 总是指向最后调用它的那个对象</strong>：</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> b = <span class="number">1</span>,</div><div class="line">    c =&#123;</div><div class="line">       <span class="attr">b</span>:<span class="number">2</span></div><div class="line">&#125;;</div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">a</span> (<span class="params"></span>) </span>&#123;</div><div class="line">	<span class="built_in">console</span>.log(<span class="keyword">this</span>.b)</div><div class="line">&#125;</div><div class="line">a();    <span class="comment">//  1</span></div><div class="line"><span class="built_in">window</span>.a === a;    <span class="comment">//  true</span></div><div class="line">c.a = a;</div><div class="line">c.a();    <span class="comment">//  2</span></div><div class="line"><span class="built_in">window</span>.c.a === c.a;    <span class="comment">//  true</span></div></pre></td></tr></table></figure>
+<p>这个例子中，我加入了<code>window</code>对象便于理解，实际上我们定义在全局中的函数也是这样被调用，我们书写的时候可以省略掉<code>window</code>，像一种小的语法糖。先说这个例子的意外情况，在声明严格模式下，不允许<code>this</code>默认绑定到最外层的<code>window</code>对象上，也就是严格模式会输出<code>undefined</code>。而<code>window.c.a()</code>之所以会输出2，就是我们说的作为对象的方法调用，对应了规则一：<code>this</code>总是指向最后调用它的那个对象。即便c对象处于一个非全局作用域中(其他函数作用域)调用也是这个结果。</p>
+<h4 id="Rule-No-2-使用call-apply调用函数时传递的第一个参数即为this的值，俗称‘硬绑定’："><a href="#Rule-No-2-使用call-apply调用函数时传递的第一个参数即为this的值，俗称‘硬绑定’：" class="headerlink" title="Rule.No.2: 使用call,apply调用函数时传递的第一个参数即为this的值，俗称‘硬绑定’："></a><strong>Rule.No.2: 使用<code>call,apply</code>调用函数时传递的第一个参数即为<code>this</code>的值，俗称‘硬绑定’：</strong></h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> a = <span class="number">1</span>,</div><div class="line">    b =&#123;</div><div class="line">       <span class="attr">a</span>:<span class="number">2</span>,</div><div class="line">    &#125;,</div><div class="line">    c = &#123;&#125;;</div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span> (<span class="params"></span>) </span>&#123;</div><div class="line">	<span class="built_in">console</span>.log(<span class="keyword">this</span>.a);</div><div class="line">&#125;</div><div class="line">foo.call(b);    <span class="comment">//  2</span></div><div class="line">foo.call(a);    <span class="comment">//  undefined</span></div><div class="line">foo.call(c);    <span class="comment">//  undefined</span></div><div class="line">foo.call(<span class="keyword">this</span>);    <span class="comment">//  1</span></div><div class="line">foo.call();    <span class="comment">//  1</span></div></pre></td></tr></table></figure>
+<p>调用<code>call</code>方法时，或者写入<code>this</code>为绑定到默认对象，此例中的默认对象为<code>window</code>。当作为构造函数调用时，指向构造函数也是<code>call</code>方法的变换，而<code>new</code>实例也是该方法的变种：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span> (<span class="params"></span>) </span>&#123;</div><div class="line">	<span class="keyword">this</span>.c=<span class="number">1</span>;</div><div class="line">&#125;</div><div class="line"><span class="keyword">var</span> a = <span class="keyword">new</span> foo();    <span class="comment">//  实际等价于下面代码</span></div><div class="line"><span class="keyword">var</span> b = &#123;&#125;;</div><div class="line">b.__proto__ = foo.prototype;</div><div class="line"><span class="keyword">var</span> result=foo.call(b);</div><div class="line"><span class="keyword">return</span> <span class="keyword">typeof</span> result ===<span class="string">'obj'</span> ? result : b;</div></pre></td></tr></table></figure></p>
+<p>使用<code>new</code>关键字构造对象，等价于新建一个对象，把对象的原型绑定在函数的原型上，再到对象的作用域中调用函数，实际即把函数的<code>this</code>绑定到对象上，最后一步，检测返回值，网上好多关于<code>new</code>的定义都没写这一步，如果该函数有返回值，那么新建对象则应包含函数的返回值，否则就为对象本身。<em>可以看出，作为构造函数调用时，<code>this</code>的指向为<code>new</code>出来的对象，都是<code>call</code>方法的功劳。对应了规则2</em>。<br>再来看一个例子：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> a = &#123;</div><div class="line">	<span class="attr">b</span> : <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; <span class="built_in">console</span>.log(<span class="keyword">this</span>.c) &#125; &#125;,</div><div class="line">	<span class="attr">c</span>:<span class="number">3</span></div><div class="line">&#125;;</div><div class="line"><span class="keyword">var</span> c = <span class="number">5</span>;</div><div class="line"><span class="keyword">var</span> d = &#123; <span class="attr">c</span>:<span class="number">10</span> &#125;;</div><div class="line">a.b()();    <span class="comment">//  5</span></div><div class="line">a.b().call(a);    <span class="comment">//  3</span></div><div class="line">a.b().call(d);    <span class="comment">//  10</span></div></pre></td></tr></table></figure></p>
+<p>有些教程认为，<code>a.b()()</code>调用时<code>this</code>绑定到最外层的<code>window</code>是规则之外，个人不敢苟同，此例中<code>a.b()</code>返回的是一个完整的函数，函数在全局作用域调用，自然<code>this</code>就绑定到了最外层，同理，用<code>call</code>方法改变作用域后，<code>this</code>也绑定到了<code>call</code>方法的第一个参数对象中。<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">foo</span> (<span class="params"></span>) </span>&#123;</div><div class="line">	<span class="built_in">console</span>.log(<span class="keyword">this</span>.c);</div><div class="line">&#125;</div><div class="line"><span class="keyword">var</span> a = &#123;</div><div class="line">	<span class="attr">c</span>:<span class="number">3</span>,</div><div class="line">	<span class="attr">foo</span>:foo</div><div class="line">&#125;;</div><div class="line"><span class="keyword">var</span> bar = a.foo;</div><div class="line"><span class="keyword">var</span> c = <span class="number">10</span>;</div><div class="line">bar();    <span class="comment">//  10</span></div><div class="line">a.foo();    <span class="comment">//  3</span></div></pre></td></tr></table></figure></p>
+<p>这段代码来源于《你不知道的JavaScript》，书中将<code>bar()</code>输出为10定义为隐式丢失。这样其实比较难以理解，这里实际考察的是<code>=</code>函数赋值行为到底是在干什么，函数赋值给变量，变量中储存的实际上是指向<strong>函数本身</strong>内存的指针，与函数名无关。可以想象成匿名函数，函数名仅仅是一个标签，可随时更换。也就解释了<code>foo</code>函数依据调用环境的不同而输出不同的数字。</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>闭包，原型链，<code>this</code>可以说是JS语言中的三座大山，也是这门语言的基石。无论怎么深入都不过分，尤其是在现在前端框架层出不穷的时候，<code>angular</code>,<code>vue</code>,<code>react</code>和各种JS库，能基础运用这些框架很简单，而想了解框架背后所蕴含的思想却大不简单。而不能了解一门语言的精髓，不了解一个框架的内部构造，始终都会被新出的框架牵着鼻子走，唯有深入JS内部，知晓它的长处，不足。才能在这些新新技术中做出合适的选择，合适的取舍！</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
     <link itemprop="mainEntityOfPage" href="https://github.com/remarkableRide/io/2017/05/18/JS作用域/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -351,7 +512,7 @@
                   <span class="post-meta-item-text">字数统计</span>
                 
                 <span title="字数统计">
-                  1,075
+                  1,084
                 </span>
               
 
@@ -390,7 +551,7 @@
           
             <h2 id="JS引擎的工作流程"><a href="#JS引擎的工作流程" class="headerlink" title="JS引擎的工作流程"></a>JS引擎的工作流程</h2><p>上一章说到函数声明会自动提前，实际就是JS引擎的功劳，电脑CPU只能理解二进制代码，而我们书写的程序需要经过编译之后形成机器码才能输入给CPU执行，这段过程称为编译：包括词法分析-把代码分割成最小化，语法分析-重新组合代码，语义分析-生成语法树，然后是中间代码生成，再经过链接器的链接生成最后的可执行机器码。JS的作为一门解释性语言的差别体现在边编译边执行。而执行编译的便是JS引擎，比如比较著名的谷歌chrome浏览器v8引擎。</p>
 <h3 id="作用域的确定"><a href="#作用域的确定" class="headerlink" title="作用域的确定"></a>作用域的确定</h3><p><strong>JS语言的作用域指的是函数和变量的可访问的范围</strong>，JS中没有块级作用域，比如<code>if(){}</code>,<code>for(){}</code>这些语句块内部定义的变量外部都是能拿到的，这里不举例，与这句话相对应的是JS中只存在函数作用域和全局作用域。而作用域的创建是在函数定义的时刻，与函数是否被调用无关：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> c = <span class="number">1</span>;</div><div class="line"><span class="keyword">var</span> a = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123; </div><div class="line">        <span class="built_in">console</span>.log(c);</div><div class="line">&#125;;</div><div class="line"><span class="keyword">var</span> b = <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</div><div class="line">	<span class="keyword">var</span> c = <span class="number">2</span>;</div><div class="line">        a();    </div><div class="line">&#125;;</div><div class="line">b();    <span class="comment">//  此时会打印1，而不是2</span></div></pre></td></tr></table></figure></p>
-<p>我在刚开始遇到这个问题时，百思不得其解，为什么函数会拿到外部的a，而对里面的a无动于衷，不是说好的，变量的查找是沿着作用域链一级一级往上查找，最近的最先找到么？想要弄明白这个问题，就要知道JS解析这段代码时发生了什么。JS解析一个函数的调用时，实际会载入被调用函数的执行上下文环境，这个熟悉的名字，我们常说的<code>this</code>，也是执行上下文环境的一部分，下面让我们来模仿一下JS引擎的思维方式，走起：<br>第一步，我们在全局下提取变量声明和函数声明:<table class="table table-bordered table-striped table-condensed"><tr><td>全局上下文环境-代码开始开始解析</td><td></td></tr><tr><td>c</td><td>undefined</td></tr><tr><td>a</td><td>undefined</td></tr><tr><td>b</td><td>undefined</td></tr></table><table class="table table-bordered table-striped table-condensed"><tr><td>全局上下文环境-代码解析到第8行</td><td>进行赋值</td></tr><tr><td>c</td><td>1</td></tr><tr><td>a</td><td>function</td></tr><tr><td>b</td><td>function</td></tr></table>在执行到第9行时，调用b函数，同时，会创建一个b函数的新的执行上下文环境：<table class="table table-bordered table-striped table-condensed"><tr><td>b函数的上下文环境</td><td></td></tr><tr><td>局部变量c</td><td>2</td></tr><tr><td>this</td><td>window</td></tr><tr><td>arguments</td><td>undefined</td></tr></table>然后，引擎进入b函数内部，也就是第五行，b函数的上下文环境会被载入到上下文环境栈，一个压栈的操作：<table class="table table-bordered table-striped table-condensed"><tr><td>b函数的上下文环境-栈顶</td></tr><tr><td>全局上下文环境-栈底</td></tr></table>继续解析到第7行，调用a函数，与刚才一样，创建一个a函数的上下文环境并执行压栈，但是，此时a的执行上下文中并没变量c的定义，这个时候，引擎会到<em>创建a函数的作用域中去取值</em>，也就是我们所说的跨域，而此时的a函数定义在全局作用域中，自然也就拿到了<code>c=1</code>的值并输出。那什么情况下a函数会输出<code>c=2</code>呢，只有当a函数身处b函数的作用域中时，也就是，a函数在b的作用域中定义。这也很好的解释了闭包的原理：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">f1</span>(<span class="params"></span>)</span>&#123;</div><div class="line">　　<span class="keyword">var</span> n=<span class="number">999</span>;</div><div class="line">　　<span class="function"><span class="keyword">function</span> <span class="title">f2</span>(<span class="params"></span>)</span>&#123;</div><div class="line">　　　　　　alert(n); </div><div class="line">　　&#125;</div><div class="line">　　<span class="keyword">return</span> f2;</div><div class="line">&#125;</div><div class="line"><span class="keyword">var</span> result=f1();</div><div class="line">result();     <span class="comment">//  999</span></div></pre></td></tr></table></figure></p>
+<p>我在刚开始遇到这个问题时，百思不得其解，为什么函数会拿到外部的c，而对里面的c无动于衷，不是说好的，变量的查找是沿着作用域链一级一级往上查找，最近的最先找到么？想要弄明白这个问题，就要知道JS解析这段代码时发生了什么。JS解析一个函数的调用时，实际会载入被调用函数的执行上下文环境，这个熟悉的名字，我们常说的<code>this</code>，也是执行上下文环境的一部分，下面让我们来模仿一下JS引擎的思维方式，来解析一下这段代码。走起：<br>第一步，我们在全局下提取变量声明和函数声明:<table class="table table-bordered table-striped table-condensed"><tr><td>全局上下文环境-代码开始开始解析</td><td></td></tr><tr><td>c</td><td>undefined</td></tr><tr><td>a</td><td>undefined</td></tr><tr><td>b</td><td>undefined</td></tr></table><table class="table table-bordered table-striped table-condensed"><tr><td>全局上下文环境-代码解析到第8行</td><td>进行赋值</td></tr><tr><td>c</td><td>1</td></tr><tr><td>a</td><td>function</td></tr><tr><td>b</td><td>function</td></tr></table>在执行到第9行时，调用b函数，同时，会创建一个b函数的新的执行上下文环境：<table class="table table-bordered table-striped table-condensed"><tr><td>b函数的上下文环境</td><td></td></tr><tr><td>局部变量c</td><td>2</td></tr><tr><td>this</td><td>window</td></tr><tr><td>arguments</td><td>undefined</td></tr></table>然后，引擎进入b函数内部，也就是第五行，b函数的上下文环境会被载入到上下文环境栈，一个压栈的操作：<table class="table table-bordered table-striped table-condensed"><tr><td>b函数的上下文环境-栈顶</td></tr><tr><td>全局上下文环境-栈底</td></tr></table>继续解析到第7行，调用a函数，与刚才一样，创建一个a函数的上下文环境并执行压栈，但是，此时a的执行上下文中并没变量c的定义，这个时候，引擎会到<em>创建a函数的作用域中去取值</em>，也就是我们所说的跨域，而此时的a函数定义在全局作用域中，自然也就拿到了<code>c=1</code>的值并输出。那什么情况下a函数会输出<code>c=2</code>呢，只有当a函数身处b函数的作用域中时，也就是，a函数在b的作用域中定义。这也很好的解释了闭包的原理：<br><figure class="highlight javascript"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">f1</span>(<span class="params"></span>)</span>&#123;</div><div class="line">　　<span class="keyword">var</span> n=<span class="number">999</span>;</div><div class="line">　　<span class="function"><span class="keyword">function</span> <span class="title">f2</span>(<span class="params"></span>)</span>&#123;</div><div class="line">　　　　　　alert(n); </div><div class="line">　　&#125;</div><div class="line">　　<span class="keyword">return</span> f2;</div><div class="line">&#125;</div><div class="line"><span class="keyword">var</span> result=f1();</div><div class="line">result();     <span class="comment">//  999</span></div></pre></td></tr></table></figure></p>
 <p>此例来源于:<a href="http://www.ruanyifeng.com/blog/2009/08/learning_javascript_closures.html" target="_blank" rel="external">阮一峰的网络日志</a>;<br>按照我们刚才分析的思路，来解释一下这个例子就很容易了，首先f1返回的是一个函数，当调用这个函数的时候，JS引擎就会先进入到f2函数作用域中寻找n的值，结果当然是没有，接下来跨域到<strong>创建f2函数的f1函数作用域</strong>中寻找，找到了<code>n=999</code>并输出：<table class="table table-bordered table-striped table-condensed"><tr><td>f2函数的上下文环境-栈顶</td></tr><tr></tr><tr><td>f1函数的上下文环境</td></tr><td>全局上下文环境-栈底</td></table><br>而此时由于f2函数引用了f1函数中的变量，导致f1函数的上下文环境并不能从内存中释放，直到第9行f2函数调用结束。这也是我们常说的闭包的弊端：增加内存开销。</p>
 
           
@@ -1098,7 +1259,7 @@
           
             <div class="site-state-item site-state-posts">
               <a href="/archives">
-                <span class="site-state-item-count">5</span>
+                <span class="site-state-item-count">6</span>
                 <span class="site-state-item-name">日志</span>
               </a>
             </div>
@@ -1111,7 +1272,7 @@
             
             <div class="site-state-item site-state-tags">
               <a href="/tags/index.html">
-                <span class="site-state-item-count">4</span>
+                <span class="site-state-item-count">5</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
